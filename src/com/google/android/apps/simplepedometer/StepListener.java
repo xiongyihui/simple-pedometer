@@ -26,5 +26,7 @@ public interface StepListener {
    * which the step was detected.
    */
   public void step(long timeNs);
+  
+  public void probe(float value);
 
 }

@@ -22,22 +22,54 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GraphView.GraphViewData;
+import com.jjoe64.graphview.GraphViewSeries;
+import com.jjoe64.graphview.LineGraphView;
 
 public class SimplePedometerActivity extends Activity implements SensorEventListener, StepListener {
   private TextView textView;
   private SimpleStepDetector simpleStepDetector;
   private SensorManager sensorManager;
   private Sensor accel;
-  private static final String TEXT_NUM_STEPS = "Number of Steps: ";
+  private static final String TEXT_NUM_STEPS = "Steps: ";
   private int numSteps;
+  
+  private GraphView graphView;
+  private GraphViewSeries dataSeries;
+  private int dataCounter = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    
+    LinearLayout layout = new LinearLayout(this);
+    layout.setOrientation(LinearLayout.VERTICAL);
+    
     textView = new TextView(this);
     textView.setTextSize(30);
-    setContentView(textView);
+    layout.addView(textView);
+    
+    dataSeries = new GraphViewSeries(new GraphViewData[] {});
+    dataCounter = 0;
+    graphView = new LineGraphView(
+        this // context
+        , "" // heading
+    );
+    graphView.addSeries(dataSeries); // data
+    graphView.setScalable(true);
+    graphView.setScrollable(true);
+    // graphView.setShowHorizontalLabels(false);
+    graphView.getGraphViewStyle().setNumHorizontalLabels(8);
+    graphView.getGraphViewStyle().setNumVerticalLabels(8);
+    graphView.setViewPort(0, 1024);
+    layout.addView(graphView);
+    
+    setContentView(layout);
 
     // Get an instance of the SensorManager
     sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -76,6 +108,13 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
   public void step(long timeNs) {
     numSteps++;
     textView.setText(TEXT_NUM_STEPS + numSteps);
+  }
+  
+  @Override
+  public void probe(float value) {
+	  dataCounter++;
+	  GraphViewData d = new GraphViewData(dataCounter, value);
+	  dataSeries.appendData(d, true, 1024);
   }
 
 }
